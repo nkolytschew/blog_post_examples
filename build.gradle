@@ -1,0 +1,23 @@
+
+
+allprojects {
+	// default lifecycle
+	apply plugin: 'base'
+
+	// all projects will be run in an IDE
+	apply plugin: 'eclipse'
+	apply plugin: 'idea'
+
+	// set group to default
+	group 'com.github.nkolytschew'
+}
+
+version '0.0.1-SNAPSHOT'
+
+println("execute wrapper on console with 'gradle wrapper --gradle-version 3.5'")
+
+// define wrapper version to 3.5
+//task wrapper(type: Wrapper) {
+//	description = 'Generates gradlew[.bat] scripts'
+//	gradleVersion = '3.5'
+//}

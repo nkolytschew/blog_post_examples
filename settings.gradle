@@ -1,0 +1,4 @@
+rootProject.name = 'blog_post-examples'
+
+include 'mongodb_example'
+include 'mongodb_example_java'

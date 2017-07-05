@@ -1,0 +1,46 @@
+
+// config node plugin to execute build and start server from gradle
+// not necessary
+plugins {
+	id "com.moowork.node" version "1.1.1"
+}
+
+apply plugin: 'com.moowork.node'
+
+
+node {
+	version = '7.9.0'
+	npmVersion = '4.2.0'
+	download = true
+	nodeModulesDir = file("${project.projectDir}/simple-view")
+}
+
+version '0.0.1-SNAPSHOT'
+
+// clean node/node_modules/dist
+//task npmClean(type: Delete) {
+//	group = 'build'
+//	description = 'Delete build-folders'
+//	final def webDir = "${project.projectDir}/simple-view"
+//	delete "${webDir}/node"
+//	delete "${webDir}/node_modules"
+//	delete "${webDir}/dist"
+//	delete "${webDir}/coverage"
+//}
+//clean.dependsOn('npmClean')
+
+// build sources
+task buildClientDev(type: NpmTask, dependsOn: 'npmInstall') {
+	group = 'build'
+	description = 'Compile client side folder for development'
+	args = ['run', 'buildDev']
+}
+
+// run angular ng server
+task runClientDev(type: NpmTask) {
+	group = 'run'
+	description = 'Run client app for development'
+	args = ['run', 'start']
+}
+
+

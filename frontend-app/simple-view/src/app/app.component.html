@@ -1,0 +1,281 @@
+<div class="container">
+  <div class="container">
+    <h1>Simple Frontend!!</h1>
+  </div>
+  <hr>
+
+  <!--
+     if; else template
+     check if we want to display div with delayed values
+  	 or the div with the default
+  -->
+  <ng-container *ngIf="showDelayed; then showDelayedDiv else showDefaultDiv"></ng-container>
+  <!-- if true: render the delayed json -->
+  <ng-template #showDelayedDiv>
+    <h2>delayed order by name desc - reload</h2>
+    <div class="container">
+      <div *ngFor="let doc of configurationListJsonDelayed">
+        <img [src]="'data:image/jpg;base64,'+doc.thumbImage" width="50" height="50" *ngIf="doc.thumbImage != ''"/>
+        <a (click)="getConfigDetails(doc.id)" style="color: dodgerblue">{{doc.name}}</a>
+        by <em>{{doc.author}}</em>
+        (created on: {{doc.creationDate | date:'medium'}})
+        - <a (click)="deleteConfig(doc.id)" style="color: red">delete</a>
+      </div>
+    </div>
+    <hr>
+  </ng-template>
+  <!-- else: render the default json -->
+  <ng-template #showDefaultDiv>
+    <h2>non delayed default reload</h2>
+    <div class="container">
+      <div *ngFor="let doc of configurationListJson">
+        <img [src]="'data:image/jpg;base64,'+doc.thumbImage" width="50" height="50" *ngIf="doc.thumbImage != ''"/>
+        <a (click)="getConfigDetails(doc.id)" style="color: dodgerblue">{{doc.name}}</a>
+        by <em>{{doc.author}}</em>
+        (created on: {{doc.creationDate | date:'medium'}})
+        - <a (click)="deleteConfig(doc.id)" style="color: red">delete</a>
+      </div>
+    </div>
+    <hr>
+  </ng-template>
+  <!-- end render -->
+
+  <div class="container">
+    <button type="button" class="btn btn-primary" (click)="abortDelayedConfigurationLoad()">Abort delayed loading</button>
+    <button type="button" class="btn btn-primary" (click)="reloadConfigurationWithDelay()">Delayed reload</button>
+    <button type="button" class="btn btn-primary" (click)="reloadConfigurationWithoutDelay()">Reload without delay</button>
+  </div>
+  <hr>
+  <div class="container">
+    <button type="button" class="btn btn-primary" (click)="addNewConfiguration()">Create new Configuration</button>
+  </div>
+  <hr>
+
+  <!-- show the create new configuration form -->
+  <div *ngIf="showCreateNewConfiguration" class="container">
+    <div class="container">
+      <h3>Create Configuration</h3>
+
+      <form (ngSubmit)="saveConfig(configForm.value)" #configForm="ngForm" role="form" enctype="multipart/form-data">
+        <div class="form-group">
+          <label class="center-block" for="name">Name:</label>
+          <input id="name" class="form-control" name="name"
+                 ngModel required minlength="3" #name="ngModel">
+          <div class="form-group has-error">
+            <span *ngIf="name.control.dirty && name.control.hasError('required')" class="control-label">Name is required!</span>
+            <span *ngIf="name.control.dirty && name.control.hasError('minlength')" class="control-label">Name have to be at least 3 chars long </span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="center-block" for="description">Description:</label>
+          <textarea id="description" class="form-control" name="description" type="text" rows="3"
+                    ngModel required #description="ngModel"></textarea>
+          <div class="form-group has-error">
+            <span *ngIf="description.control.dirty && description.control.hasError('required')" class="control-label">Description is required!</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="center-block" for="author">Author:</label>
+          <input id="author" class="form-control" name="author"
+                 ngModel required minlength="3" #author="ngModel">
+          <div class="form-group has-error">
+            <span *ngIf="author.control.dirty && author.control.hasError('required')" class="control-label">Author Name is required!</span>
+            <span *ngIf="author.control.dirty && author.control.hasError('minlength')" class="control-label">Author Name have to be at least 3 chars long </span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="center-block" for="thumbImage">Choose your preview Image: </label>
+          <div class="form-inline">
+            <input id="thumbImage" class="form-control" name="thumbImage" type="file"
+                   ngModel (change)="checkAndAddImageFileOnChangeEvent($event)" #thumbImage="ngModel"/>
+            <span>
+              <img [src]="'data:image/jpg;base64,'+imageAsString" width="50" height="50"
+                   *ngIf="imageAsString != ''" class="form-inline"/>
+              </span>
+          </div>
+          <div class="form-group has-feedback">
+            <span class="control-label">Make sure to choose JPG!</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="center-block" for="configItem">Choose your Configuration file: </label>
+          <input id="configItem" name="configItem" class="form-control" type="file"
+                 ngModel (change)="checkAndAddXmlFileOnChangeEvent($event)" #configItem="ngModel"/>
+          <div class="form-group has-feedback">
+            <span class="control-label">Make sure to chooses XML!</span>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-primary pull-right" (click)="close()" style="margin-left: 15px;">Close</button>
+        <button type="reset" class="btn btn-primary pull-right" style="margin-left: 15px;">Reset</button>
+        <button type="submit" class="btn btn-primary pull-right" [disabled]="!configForm.valid">Create Config</button>
+
+      </form>
+    </div>
+
+  </div>
+  <!-- end create new configuration form -->
+
+  <div *ngIf="showConfigurationDetailDiv" class="container">
+    <div class="container">
+      <h3>Show/Update Configuration</h3>
+
+      <form (ngSubmit)="updateConfig(updateConfigForm.value, configurationJson)" #updateConfigForm="ngForm" role="form" enctype="multipart/form-data">
+        <input type="hidden" name="id"
+               ngModel="{{configurationJson.id}}" #id="ngModel">
+        <div class="form-group">
+          <label class="center-block" for="update_name">Name:</label>
+          <input id="update_name" class="form-control" name="name"
+                 ngModel="{{configurationJson.name}}" required minlength="3" #name="ngModel">
+          <div class="form-group has-error">
+            <span *ngIf="name.control.dirty && name.control.hasError('required')" class="control-label">Name is required!</span>
+            <span *ngIf="name.control.dirty && name.control.hasError('minlength')" class="control-label">Name have to be at least 3 chars long </span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="center-block" for="update_description">Description:</label>
+          <textarea id="update_description" class="form-control" name="description" type="text" rows="3"
+                    ngModel="{{configurationJson.description}}" required #description="ngModel"></textarea>
+          <div class="form-group has-error">
+            <span *ngIf="description.control.dirty && description.control.hasError('required')" class="control-label">Description is required!</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="center-block" for="update_author">Author:</label>
+          <input id="update_author" class="form-control" name="author"
+                 ngModel="{{configurationJson.author}}" required minlength="3" #author="ngModel">
+          <div class="form-group has-error">
+            <span *ngIf="author.control.dirty && author.control.hasError('required')" class="control-label">Author Name is required!</span>
+            <span *ngIf="author.control.dirty && author.control.hasError('minlength')" class="control-label">Author Name have to be at least 3 chars long </span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="center-block" for="update_thumbImage">Choose your preview Image: </label>
+          <div class="form-inline">
+            <input id="update_thumbImage" class="form-control" name="thumbImage" type="file"
+                   ngModel (change)="checkAndAddImageFileOnChangeEvent($event)" #thumbImage="ngModel"/>
+            <span>
+              <img [src]="'data:image/jpg;base64,'+configurationJson.thumbImage" width="50" height="50"
+                   *ngIf="configurationJson.thumbImage != ''" class="form-inline"/>
+              </span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="center-block" for="update_configItem">Choose your Configuration file: </label>
+          <input id="update_configItem" name="configItem" class="form-control" type="file"
+                 ngModel (change)="checkAndAddXmlFileOnChangeEvent($event)" #configItem="ngModel"/>
+          <div class="form-group has-feedback">
+            <span class="control-label">Make sure to chooses XML!</span>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-primary pull-right" (click)="closeUpdateForm()" style="margin-left: 15px;">Close</button>
+        <button type="reset" class="btn btn-primary pull-right" style="margin-left: 15px;">Reset</button>
+        <button type="submit" class="btn btn-primary pull-right">Update Config</button>
+
+      </form>
+    </div>
+    <div class="container" style="margin-top: 20px">
+      <div class="panel panel-default">
+        <div class="container">
+          <h2>User Reviews
+            <button type="button" class="btn btn-primary pull-right" style="margin-right: 30px;"
+                    (click)="showCreateRatingForm()">Add new Rating
+            </button>
+          </h2>
+        </div>
+        <hr>
+
+        <div class="container" *ngIf="showCreateRating">
+          <form (ngSubmit)="saveRating(ratingForm.value, configurationJson.id)" #ratingForm="ngForm" role="form">
+            <div class="form-inline">
+              <div class="form-group">
+                <label>Choose Rating</label>
+                <div>
+                  <i class="glyphicon" aria-hidden="true"
+                     *ngFor="let r of ratingRangeArray" (click)="updateRating(r)"
+                     [class.glyphicon-star]="r <= currentRating"
+                     [class.glyphicon-star-empty]="r > currentRating">
+                  </i>
+                </div>
+                <input id="rating" name="rating" type="hidden"
+                       ngModel="{{currentRating}}" required #rating="ngModel">
+
+              </div>
+            </div>
+            <div class="form-inline">
+              <label>Please give a description</label>
+              <div>
+                <div class="form-group">
+                  <label class="sr-only" for="rating_description">Description</label>
+                  <textarea id="rating_description" class="form-control" rows="1" placeholder="Description" name="description"
+                            ngModel required #description="ngModel"></textarea>
+                  <div class="form-group has-error">
+                    <span *ngIf="description.control.dirty && description.control.hasError('required')" class="control-label">Description is required!</span>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="sr-only" for="email">Email address</label>
+                  <input id="email" class="form-control" type="email" placeholder="Email: john@doe.com" name="email"
+                         ngModel required minlength="3" #email="ngModel">
+                  <div class="form-group has-error">
+                    <span *ngIf="email.control.dirty && email.control.hasError('required')" class="control-label">email is required!</span>
+                    <span *ngIf="email.control.dirty && email.control.hasError('minlength')" class="control-label">Email have to be at least 3 chars long </span>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="sr-only" for="rating_author">Username</label>
+                  <input id="rating_author" class="form-control" type="text" placeholder="Username: John Doe" name="author"
+                         ngModel required minlength="3" #author="ngModel">
+                  <div class="form-group has-error">
+                    <span *ngIf="author.control.dirty && author.control.hasError('required')" class="control-label">Author is required!</span>
+                    <span *ngIf="author.control.dirty && author.control.hasError('minlength')" class="control-label">Author have to be at least 3 chars long </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-right: 30px">
+              <button type="reset" class="btn btn-primary pull-right" (click)="resetCreateRatingForm()" style="margin-left: 15px;">Close</button>
+              <button type="submit" class="btn btn-primary pull-right">Create Rating</button>
+            </div>
+          </form>
+        </div>
+        <hr>
+
+        <div class="container" *ngIf="!configurationJson.ratings || configurationJson.ratings.length < 1">
+          No ratings yet
+        </div>
+        <div *ngFor="let rating of configurationJson.ratings" class="container">
+          <div class="media" *ngFor="let comment of rating.ratingCommentList">
+            <div class="media-body">
+              <h4 class="media-heading">
+                <em>{{comment.author}}</em>
+                <span class="glyphicon glyphicon-star" aria-hidden="true"
+                      *ngFor="let k of ratingRangeArray; let i = index"
+                      [class.glyphicon-star]="i <= comment.rating"
+                      [class.glyphicon-star-empty]="i >= comment.rating">
+                  </span>
+                <small><i>({{comment.rating}})</i></small>
+                <br/>
+                <small><i>Posted on: {{comment.creationDate | date:'medium'}}</i></small>
+              </h4>
+              <p>
+                {{comment.description}}
+                - <a (click)="deleteRatingComment(configurationJson.id, comment.id)" style="color: red">delete</a>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

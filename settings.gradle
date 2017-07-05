@@ -2,3 +2,7 @@ rootProject.name = 'blog_post-examples'
 
 include 'mongodb_example'
 include 'mongodb_example_java'
+
+include 'reactive_mongodb_example'
+include 'reactive_mongodb_example_java'
+include 'frontend-app'

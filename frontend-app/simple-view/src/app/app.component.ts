@@ -227,7 +227,8 @@ export class AppComponent implements OnChanges, OnInit {
   }
 
   deleteRatingComment(configurationId, ratingId) {
-
+    this.http.delete(`${this.ratingUrl}/${configurationId}/${ratingId}`)
+      .subscribe(() => this.getConfigDetails(configurationId));
   }
 
   /**
